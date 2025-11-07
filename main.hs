@@ -16,3 +16,6 @@ type Game = ([Edge], Turn, [Box], Int) -- int is a variable square size of the b
 -- function: change the players turn
 -- function: (probably list comp) (or a fold idk) Scoreboard system would be defined as a function of scores
 -- function: have a list of all moves, and then immediately subtract the move that any player makes
+
+--Story 2
+--Check who has won the game state, if anyone, with a function of type  Game -> Winner.
