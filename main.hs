@@ -10,6 +10,13 @@ type Turn = Player
 data Winner = Maybe Player -- idk
 type Game = ([Edge], Turn, [Box], Int) -- int is a variable square size of the board
 
+-- print empty grid
+PrintEmptyGrid :: Game -> String
+PrintEmptyGrid = undefined
+-- update grid
+UpdateGrid :: Game -> Move -> String
+UpdateGrid = undefined
+
 
 -- index is 1 thru Size
 -- function: lookup
