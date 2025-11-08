@@ -19,3 +19,13 @@ type Game = ([Edge], Turn, [Box], Int) -- int is a variable square size of the b
 
 --Story 2
 --Check who has won the game state, if anyone, with a function of type  Game -> Winner.
+
+gameOver :: Game -> Bool
+gameOver game@(edges,turn,boxes,size) =
+    length edges == 2*(size-1)*(size)
+
+checkChamp :: Game -> Winner
+checkChamp game@(edges, turn, boxes, size) = 
+    if gameOver game
+        then --(logic to compare boxes)
+    else Nothing 
