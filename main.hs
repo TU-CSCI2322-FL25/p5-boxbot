@@ -20,12 +20,21 @@ type Game = ([Edge], Turn, [Box], Int) -- int is a variable square size of the b
 --Story 2
 --Check who has won the game state, if anyone, with a function of type  Game -> Winner.
 
+--evaulating if, based on how much room is left on the board, any possible moves remain
 gameOver :: Game -> Bool
 gameOver game@(edges,turn,boxes,size) =
-    length edges == 2*(size-1)*(size)
+    length edges == 2*(size-1)*(size) 
 
+--list comprehension to compare number of boxes between player X or player O. output the winner data type (logic to compare boxes)
 checkChamp :: Game -> Winner
 checkChamp game@(edges, turn, boxes, size) = 
     if gameOver game
-        then --(logic to compare boxes)
+        then 
+            let xCount = length [b | b <- boxes, snd b == X]
+                oCount = length [b | b <- boxes, snd b == O]
+            in if xCount > oCount 
+               then Just X
+               else if oCount > xCount
+                    then Just O
+                    else Nothing  -- tie
     else Nothing 
