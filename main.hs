@@ -1,7 +1,7 @@
 -- Type Classes
 
 type Point = (Int, Int)
-data Direction = Right | Down
+data Direction = DirRight | DirDown deriving (Show, Eq)
 data Player = X | O
 type Edge = (Point, Direction)
 type Move = Edge
@@ -11,11 +11,16 @@ data Winner = Maybe Player -- idk
 type Game = ([Edge], Turn, [Box], Int) -- int is a variable square size of the board
 
 -- print empty grid
-PrintEmptyGrid :: Game -> String
-PrintEmptyGrid = undefined
+--PrintEmptyGrid :: Game -> String
+--PrintEmptyGrid = undefined
 -- update grid
-UpdateGrid :: Game -> Move -> String
-UpdateGrid = undefined
+--UpdateGrid :: Game -> Move -> String
+--UpdateGrid = undefined
+
+Showline :: Game -> String
+Showline = undefined
+            -- even x = ""
+            -- odd x = ""
 
 
 -- index is 1 thru Size
