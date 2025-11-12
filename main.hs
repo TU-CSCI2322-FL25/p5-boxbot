@@ -18,9 +18,27 @@ type Game = ([Edge], Turn, [Box], Int) -- int is a variable square size of the b
 --UpdateGrid = undefined
 
 Showline :: Game -> String
-Showline = undefined
-            -- even x = ""
-            -- odd x = ""
+Showline (edges, _, boxes, size) = 
+     unlines $ concat [[drawTop y, drawMiddle y] | y <- [0..size-1]] ++ [drawBottom]
+   where
+     drawTop y = concat [drawTopS x y | x <- [0..size-1]] ++ "*"
+     drawTopS xy
+        | ((x, y), DirRight) `elem` edges = "*---"
+        | otherwise = "*   "
+        
+     drawMiddle y = concat [drawMiddleS x y | x <- [0..size-1]] ++ "|"
+     drawMiddleS x y = 
+        let leftWall = if ((x, y) DirDown) `elem` edges then "|" else " "
+            boxChar = case lookup (x, y) boxes of
+               Just X -> " X "
+               Just O -> " O "
+               Nothing -> "   "
+        in leftWall ++ boxChar
+
+     drawBottom = concat [drawBottomS x | x <- [0..size-1]] ++ "*"
+     drawBottomS x 
+        | ((x, size), DirRight) `elem` edges = "*---"
+        | otherwise = "*   "
 
 
 -- index is 1 thru Size
