@@ -19,7 +19,7 @@ type Game = ([Edge], Turn, [Box], Int) -- int is a variable square size of the b
 
 Showline :: Game -> String
 Showline (edges, _, boxes, size) = 
-     unlines $ concat [[drawTop y, drawMiddle y] | y <- [1..size]] ++ [drawBottom]
+     unlines $ concat [[drawTop y, drawMiddle y] | y <- [1..size-1]] ++ [drawBottom]
    where
      drawTop y = concat [drawTopS x y | x <- [1..size]] ++ "*"
      drawTopS x y
