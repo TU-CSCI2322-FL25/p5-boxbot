@@ -21,12 +21,12 @@ Showline :: Game -> String
 Showline (edges, _, boxes, size) = 
      unlines $ concat [[drawTop y, drawMiddle y] | y <- [1..size-1]] ++ [drawBottom]
    where
-     drawTop y = concat [drawTopS x y | x <- [1..size]] ++ "*"
+     drawTop y = concat [drawTopS x y | x <- [1..size-1]] ++ "*"
      drawTopS x y
         | ((x, y), DirRight) `elem` edges = "*---"
         | otherwise = "*   "
         
-     drawMiddle y = concat [drawMiddleS x y | x <- [1..size]] ++ "|"
+     drawMiddle y = concat [drawMiddleS x y | x <- [1..size-1]] ++ "|"
      drawMiddleS x y = 
         let leftWall = if ((x, y), DirDown) `elem` edges then "|" else " "
             boxChar = case lookup (x, y) boxes of
@@ -35,7 +35,7 @@ Showline (edges, _, boxes, size) =
                Nothing -> "   "
         in leftWall ++ boxChar
 
-     drawBottom = concat [drawBottomS x | x <- [1..size]] ++ "*"
+     drawBottom = concat [drawBottomS x | x <- [1..size-1]] ++ "*"
      drawBottomS x 
         | ((x, size), DirRight) `elem` edges = "*---"
         | otherwise = "*   "
