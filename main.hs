@@ -22,7 +22,7 @@ Showline (edges, _, boxes, size) =
      unlines $ concat [[drawTop y, drawMiddle y] | y <- [1..size]] ++ [drawBottom]
    where
      drawTop y = concat [drawTopS x y | x <- [1..size]] ++ "*"
-     drawTopS xy
+     drawTopS x y
         | ((x, y), DirRight) `elem` edges = "*---"
         | otherwise = "*   "
         
