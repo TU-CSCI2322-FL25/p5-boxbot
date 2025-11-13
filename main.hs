@@ -28,7 +28,7 @@ Showline (edges, _, boxes, size) =
         
      drawMiddle y = concat [drawMiddleS x y | x <- [1..size]] ++ "|"
      drawMiddleS x y = 
-        let leftWall = if ((x, y) DirDown) `elem` edges then "|" else " "
+        let leftWall = if ((x, y), DirDown) `elem` edges then "|" else " "
             boxChar = case lookup (x, y) boxes of
                Just X -> " X "
                Just O -> " O "
