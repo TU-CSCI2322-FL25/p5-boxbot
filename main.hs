@@ -31,13 +31,25 @@ withinBounds ((x, y), dir) size =
     Down  -> y < size && x <= size
 
 completedBoxes :: Game -> Move -> [Point]
-completedBoxes _ _ = []
+completedBoxes (edges, _, _, size) ((x, y), dir) =
+  case dir of
+    Right -> filter finished [(x, y), (x, y-1)]
+    Down  -> filter finished [(x, y), (x-1, y)]
+  where
+    finished (bx, by) =
+      bx >= 1 && by >= 1 && bx < size && by < size &&
+      ((bx, by), Right) `elem` edges &&
+      ((bx, by), Down)  `elem` edges &&
+      ((bx+1, by), Down) `elem` edges &&
+      ((bx, by+1), Right) `elem` edges
+
 
 makeMove :: Game -> Move -> Maybe Game
 makeMove (edges, turn, boxes, size) move
    | moveExists move edges = Nothing
    | not (withinBounds move size) = Nothing
    | otherwise =
-      Just (move : edges, if null completedBoxes then opponent turn else turn,
+      Just (move : edges, if null finished then opponent turn else turn,
             boxes ++ [(p, turn) | p <- finished], size)
-      where finished = completedBoxes (edges, turn, boxes, size) move
+   where
+      finished = completedBoxes (edges, turn, boxes, size) move
