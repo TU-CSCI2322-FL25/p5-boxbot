@@ -1,21 +1,16 @@
+import Data.list
+
 -- Type Classes
 
 type Point = (Int, Int)
-data Direction = Right | Down
+data Direction = DirRight | DirDown deriving (Eq, Show)
 data Player = X | O
 type Edge = (Point, Direction)
 type Move = Edge
 type Box = (Point, Player)
 type Turn = Player
-data Winner = Maybe Player -- idk
+data Winner = Tie | Ongoing | Won Player -- idk
 type Game = ([Edge], Turn, [Box], Int) -- int is a variable square size of the board
-
-
--- index is 1 thru Size
--- function: lookup
--- function: change the players turn
--- function: (probably list comp) (or a fold idk) Scoreboard system would be defined as a function of scores
--- function: have a list of all moves, and then immediately subtract the move that any player makes
 
 --Story 2
 --Check who has won the game state, if anyone, with a function of type  Game -> Winner.
@@ -36,5 +31,11 @@ checkChamp game@(edges, turn, boxes, size) =
                then Just X
                else if oCount > xCount
                     then Just O
-                    else Nothing  -- tie
-    else Nothing 
+                    else Tie
+    else Ongoing
+
+-- index is 1 thru Size
+-- function: lookup
+-- function: change the players turn
+-- function: (probably list comp) (or a fold idk) Scoreboard system would be defined as a function of scores
+-- function: have a list of all moves, and then immediately subtract the move that any player makes
