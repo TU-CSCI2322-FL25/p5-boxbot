@@ -3,7 +3,7 @@ import Data.List
 -- Type Classes
 
 type Point = (Int, Int)
-data Direction = DirRight | DirDown deriving (Eq, Show)
+data Direction = DirRight | DirDown deriving (Show, Eq)
 data Player = X | O
 type Edge = (Point, Direction)
 type Move = Edge
@@ -12,8 +12,23 @@ type Turn = Player
 data Winner = Tie | Ongoing | Won Player -- idk
 type Game = ([Edge], Turn, [Box], Int) -- int is a variable square size of the board
 
---Story 2
---Check who has won the game state, if anyone, with a function of type  Game -> Winner.
+drawGame :: Game -> String
+drawGame (edges, _, boxes, size) = 
+     unlines $ concat [[drawTop y, drawMiddle y] | y <- [1..size-1]] ++ [drawTop size]
+   where
+     drawTop y = concat [drawTopS x y | x <- [1..size-1]] ++ "*"
+     drawTopS x y
+        | ((x, y), DirRight) `elem` edges = "*---"
+        | otherwise = "*   "
+        
+     drawMiddle y = concat [drawMiddleS x y | x <- [1..size-1]] ++ "|"
+     drawMiddleS x y = 
+        let leftWall = if ((x, y), DirDown) `elem` edges then "|" else " "
+            boxChar = case lookup (x, y) boxes of
+               Just X -> " X "
+               Just O -> " O "
+               Nothing -> "   "
+        in leftWall ++ boxChar
 
 --evaulating if, based on how much room is left on the board, any possible moves remain
 gameOver :: Game -> Bool
