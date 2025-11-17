@@ -92,3 +92,9 @@ makeMove (edges, turn, boxes, size) move
             boxes ++ [(p, turn) | p <- finished], size)
    where
       finished = completedBoxes (edges, turn, boxes, size) move
+
+whoWillWin :: Game -> Winner
+whoWillWin = undefined
+
+bestMove :: Game -> Move
+bestMove = undefined      
