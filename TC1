@@ -1,0 +1,4 @@
+5
+O
+1,1,DirRight 1,1,DirDown 1,2,DirRight 1,2,DirDown 1,3,DirRight 1,3,DirDown 1,4,DirRight 1,4,DirDown 1,5,DirDown 2,1,DirRight 2,1,DirDown 2,2,DirRight 2,2,DirDown 2,3,DirRight 2,3,DirDown 2,4,DirRight 2,4,DirDown 3,1,DirRight 3,1,DirDown 3,2,DirRight 3,2,DirDown 3,3,DirRight 3,3,DirDown 3,5,DirDown 4,1,DirRight 4,1,DirDown 4,2,DirRight 4,2,DirDown 4,3,DirRight 4,3,DirDown 4,4,DirRight 4,4,DirDown 4,5,DirDown 5,1,DirRight 5,2,DirRight 5,3,DirRight 5,4,DirRight
+1,1,X 1,2,O 1,3,X 1,4,O 2,1,X 2,2,O 2,3,X 3,1,X 3,2,O 4,1,X 4,2,O 4,3,X 4,4,O
