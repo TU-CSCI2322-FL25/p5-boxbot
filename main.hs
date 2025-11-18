@@ -1,15 +1,15 @@
 import Data.List
-
+import Data.Maybe 
 -- Type Classes
 
 type Point = (Int, Int)
 data Direction = DirRight | DirDown deriving (Show, Eq)
-data Player = X | O
+data Player = X | O deriving (Show, Eq)
 type Edge = (Point, Direction)
 type Move = Edge
 type Box = (Point, Player)
-type Turn = Player
-data Winner = Tie | Ongoing | Won Player -- idk
+type Turn = Player deriving (Show, Eq)
+data Winner = Tie | Ongoing | Won Player deriving (Show, Eq) -- idk
 type Game = ([Edge], Turn, [Box], Int) -- int is a variable square size of the board
 
 drawGame :: Game -> String
@@ -94,7 +94,23 @@ makeMove (edges, turn, boxes, size) move
       finished = completedBoxes (edges, turn, boxes, size) move
 
 whoWillWin :: Game -> Winner
-whoWillWin = undefined
+whoWillWin game@(_, turn, _, _) = case checkChamp game of
+  Tie -> Tie
+  Winner p -> Winner p 
+  Ongoing -> 
+    let 
+      moves = legalMoves game 
+      games = catMaybe [makeMove game m | m <- moves] 
+      winners = map whoWillWin games --Fairies 
+    in
+      if Won turn `elem` winners then Won turn 
+      else if Tie `elem` winners then Tie 
+      else Won otherPlayer turn
+
+otherPlayer :: Player -> Player 
+otherPlayer p =
+  | p == X    = O 
+  | otherwise = X
 
 bestMove :: Game -> Move
 bestMove = undefined      
