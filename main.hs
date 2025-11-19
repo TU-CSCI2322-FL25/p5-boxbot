@@ -43,9 +43,9 @@ checkChamp game@(edges, turn, boxes, size) =
             let xCount = length [b | b <- boxes, snd b == X]
                 oCount = length [b | b <- boxes, snd b == O]
             in if xCount > oCount 
-               then Just X
+               then Won X
                else if oCount > xCount
-                    then Just O
+                    then Won O
                     else Tie
     else Ongoing
 
