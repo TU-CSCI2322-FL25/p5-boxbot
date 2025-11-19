@@ -105,12 +105,8 @@ whoWillWin game@(_, turn, _, _) = case checkChamp game of
     in
       if Won turn `elem` winners then Won turn 
       else if Tie `elem` winners then Tie 
-      else Won otherPlayer turn
+      else Won opponent turn
 
-otherPlayer :: Player -> Player 
-otherPlayer p =
-  | p == X    = O 
-  | otherwise = X
 
 bestMove :: Game -> Move
 bestMove = undefined      
