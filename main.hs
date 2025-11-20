@@ -102,23 +102,28 @@ readGame s =
      where
           buildGame sizeLine turnLine edgesLine boxesLine = 
                let size = read sizeLine
-                   turn = case trunLine of
+               
+                   turn = case turnLine of
                              "X" -> X
                              "O" -> O
                              _   -> error "Turn cannot be empty"
-                   edes = [let [a,b,c] = split ',' tok
-                               x = read a
-                               y = read b
-                               dir = if c == "R" then DirRight else DirDown
+                             
+                   edes = [ let [a,b,c] = split ',' tok
+                                  x = read a
+                                  y = read b
+                                  dir = if c == "R" then DirRight else DirDown
                             in ((x, y), dir)
-                          | toks <- words edgesLine]
+                          | tok <- words edgesLine]
+                          
                    boxes = [ let [a,b,c] = split ',' tok
                                   x = read a
                                   y = read b
                                   pl = if c == "X" then X else O
                              in ((x, y), pl)
-                           | toks <- words boxesLine]
+                           | tok <- words boxesLine]
+                           
                in (edges, turn, boxes, size)
+               
      split c str = case break (== c) str of
                          (h, "") -> [h]
-                         (h, _:rest) -> h split c rest
+                         (h, _:rest) -> h : split c rest
