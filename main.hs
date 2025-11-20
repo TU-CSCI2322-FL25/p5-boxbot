@@ -112,9 +112,9 @@ readGame s =
                                   x = read a
                                   y = read b
                                   dir = if c == "R" then DirRight else DirDown
-                            in ((x, y), dir)
-                          | tok <- words edgesLine]
-                          
+                             in ((x, y), dir)
+                           | tok <- words edgesLine]
+                            
                    boxes = [ let [a,b,c] = split ',' tok
                                   x = read a
                                   y = read b
