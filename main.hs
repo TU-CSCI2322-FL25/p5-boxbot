@@ -92,3 +92,33 @@ makeMove (edges, turn, boxes, size) move
             boxes ++ [(p, turn) | p <- finished], size)
    where
       finished = completedBoxes (edges, turn, boxes, size) move
+
+readGame :: String -> Game
+readGame s = 
+     case lines s of 
+          (sizeLine : turnLine : edgesLine : boxesLine : _) -> buildGame sizeLine turnLine edgesLine boxesLine
+          (sizeLine : turnLine : edgesLine : _) -> buildGame sizeLine turnLine edgesLine "" 
+          _ -> error "No game"
+     where
+          buildGame sizeLine turnLine edgesLine boxesLine = 
+               let size = read sizeLine
+                   turn = case trunLine of
+                             "X" -> X
+                             "O" -> O
+                             _   -> error "Turn cannot be empty"
+                   edes = [let [a,b,c] = split ',' tok
+                               x = read a
+                               y = read b
+                               dir = if c == "R" the DirRight else DirDown
+                            in ((x, y), dir)
+                          | toks <- words edgesLine]
+                   boxes = [ let [a,b,c] = split ',' tok
+                                  x = read a
+                                  y = read b
+                                  pl = if c == "X" then X else O
+                             in ((x, y), pl)
+                           | toks <- words boxesLine]
+               in (edges, turn, boxes, size)
+     split c str = case break (== c) str of
+                         (h, "") -> [h]
+                         (h, _:rest) -> h split c rest
