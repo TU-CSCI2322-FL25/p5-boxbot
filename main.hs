@@ -109,7 +109,7 @@ readGame s =
                    edes = [let [a,b,c] = split ',' tok
                                x = read a
                                y = read b
-                               dir = if c == "R" the DirRight else DirDown
+                               dir = if c == "R" then DirRight else DirDown
                             in ((x, y), dir)
                           | toks <- words edgesLine]
                    boxes = [ let [a,b,c] = split ',' tok
