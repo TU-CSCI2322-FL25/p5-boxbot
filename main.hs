@@ -108,7 +108,7 @@ readGame s =
                              "O" -> O
                              _   -> error "Turn cannot be empty"
                              
-                   edes = [ let [a,b,c] = split ',' tok
+                   edges = [ let [a,b,c] = split ',' tok
                                   x = read a
                                   y = read b
                                   dir = if c == "R" then DirRight else DirDown
