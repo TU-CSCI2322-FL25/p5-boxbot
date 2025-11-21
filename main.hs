@@ -1,4 +1,6 @@
 import Data.List
+import Text.Read
+import Data.List.Split
 
 -- Type Classes
 
@@ -100,41 +102,49 @@ readGame s =
           (sizeLine : turnLine : edgesLine : _) -> buildGame sizeLine turnLine edgesLine "" 
           _ -> error "No game"
      where
+          readDir "R" = Just DirRight
+          readDir "D" = Just DirDown
+          readDir _   = Nothing
+          readPlayer "X" = Just X
+          readPlayer "O" = Just O
+          readPlayer _   = Nothing
           buildGame sizeLine turnLine edgesLine boxesLine = 
-               let size = read sizeLine
+               do size <- readMaybe sizeLine
                
-                   turn = case turnLine of
-                             "X" -> X
-                             "O" -> O
-                             _   -> error "Turn cannot be empty"
+                   turn <- case turnLine of
+                             "X" -> Just X
+                             "O" -> Just O
+                             _   -> Nothing -- error "Must have a player"
                              
-                   edges = [ let [a,b,c] = split ',' tok
-                                  x = read a
-                                  y = read b
-                                  dir = if c == "R" then DirRight else DirDown
-                             in ((x, y), dir)
-                           | tok <- words edgesLine]
-                            
-                   boxes = [ let [a,b,c] = split ',' tok
-                                  x = read a
-                                  y = read b
-                                  pl = if c == "X" then X else O
-                             in ((x, y), pl)
-                           | tok <- words boxesLine]
+                   edges <- sequence [ do let [a,b,c] = splitOn ',' tok
+                                          x <- readMaybe a
+                                          y <- readMaybe b
+                                          dir <- readDir c
+                                          Just ((x, y), dir)
+                                     | tok <- words edgesLine]
+                                      
+                   boxes <- sequence [ do let [a,b,c] = splitOn ',' tok
+                                          x <- readMaybe a
+                                          y <- readMaybe b
+                                          pl <- readPlayer c
+                                          Just ((x, y), pl)
+                                     | tok <- words boxesLine]
                            
-               in (edges, turn, boxes, size)
+               Just (edges, turn, boxes, size)
                
-     split c str = case break (== c) str of
-                         (h, "") -> [h]
-                         (h, _:rest) -> h : split c rest
+    
 
 showGame :: Game -> String
 showGame (edges, turn, boxes, size) = 
      let showDir DirRight = "R"
          showDir DirDown = "D"
          showEdge ((x, y), d) = show x ++ "," ++ show y ++ "," ++ showDir d
-         showBox ((x, y), p) = show x ++ "," ++ show y ++ "," ++ (if p == X then "X" else "O")
-         turnLine = if turn == X then "X" else "O"
+         showBox ((x, y), p) = show x ++ "," ++ show y ++ "," ++ (showPlayer p)
+         turnLine = showPlayer turn 
          edgesLine = unwords (map showEdge edges)
          boxesLine = unwords (map showBox boxes)
      in unlines [show size, turnLine, edgesLine, boxesLine]
+
+showPlayer :: Player -> String
+showPlayer X = "X"
+showPLayer O = "O"
