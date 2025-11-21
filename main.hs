@@ -137,4 +137,4 @@ showGame (edges, turn, boxes, size) =
          turnLine = if turn == X then "X" else "O"
          edgesLine = unwords (map showEdge edges)
          boxesLine = unwords (map showBox boxes)
-     in unlines [ show size, turnLine, edgesLine, boxesLine]
+     in unlines [show size, turnLine, edgesLine, boxesLine]
