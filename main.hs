@@ -1,5 +1,8 @@
 import Data.List
-import Data.Maybe 
+import Data.Maybe
+import Text.Read
+import Data.List.Split
+
 -- Type Classes
 
 type Point = (Int, Int)
@@ -8,8 +11,8 @@ data Player = X | O deriving (Show, Eq)
 type Edge = (Point, Direction)
 type Move = Edge
 type Box = (Point, Player)
-type Turn = Player deriving (Show, Eq)
-data Winner = Tie | Ongoing | Won Player deriving (Show, Eq) -- idk
+type Turn = Player
+data Winner = Tie | Ongoing | Won Player deriving (Show, Eq)
 type Game = ([Edge], Turn, [Box], Int) -- int is a variable square size of the board
 
 drawGame :: Game -> String
@@ -21,7 +24,7 @@ drawGame (edges, _, boxes, size) =
         | ((x, y), DirRight) `elem` edges = "*---"
         | otherwise = "*   "
         
-     drawMiddle y = concat [drawMiddleS x y | x <- [1..size-1]] ++ "|"
+     drawMiddle y = concat [drawMiddleS x y | x <- [1..size-1]] ++ (if ((size, y), DirDown) `elem` edges then "|" else " ")
      drawMiddleS x y = 
         let leftWall = if ((x, y), DirDown) `elem` edges then "|" else " "
             boxChar = case lookup (x, y) boxes of
@@ -30,12 +33,10 @@ drawGame (edges, _, boxes, size) =
                Nothing -> "   "
         in leftWall ++ boxChar
 
---evaulating if, based on how much room is left on the board, any possible moves remain
 gameOver :: Game -> Bool
-gameOver game@(edges,turn,boxes,size) =
-    length edges == 2*(size-1)*(size) 
+gameOver game@(edges, turn, boxes, size) =
+    length edges == 2 * (size - 1) * size
 
---list comprehension to compare number of boxes between player X or player O. output the winner data type (logic to compare boxes)
 checkChamp :: Game -> Winner
 checkChamp game@(edges, turn, boxes, size) = 
     if gameOver game
@@ -51,10 +52,10 @@ checkChamp game@(edges, turn, boxes, size) =
 
 legalMoves :: Game -> [Move]
 legalMoves (madeEdges, _, _, size) = allEdges \\ madeEdges
-        where
-                allEdges = rightEdges ++ downEdges
-                rightEdges = [((x,y), DirRight) | x <- [1.. size - 1], y <- [1.. size]]
-                downEdges = [((x,y), DirDown) | x <- [1.. size], y <- [1.. size - 1]]
+    where
+        allEdges = rightEdges ++ downEdges
+        rightEdges = [((x,y), DirRight) | x <- [1..size-1], y <- [1..size]]
+        downEdges = [((x,y), DirDown) | x <- [1..size], y <- [1..size-1]]
 
 moveExists :: Edge -> [Edge] -> Bool
 moveExists m ex = m `elem` ex
@@ -66,22 +67,21 @@ opponent O = X
 withinBounds :: Move -> Int -> Bool
 withinBounds ((x, y), dir) size =
   case dir of
-    Right -> x < size && y <= size
-    Down  -> y < size && x <= size
+    DirRight -> x < size && y <= size
+    DirDown  -> y < size && x <= size
 
 completedBoxes :: Game -> Move -> [Point]
 completedBoxes (edges, _, _, size) ((x, y), dir) =
   case dir of
-    Right -> filter finished [(x, y), (x, y-1)]
-    Down  -> filter finished [(x, y), (x-1, y)]
+    DirRight -> filter finished [(x, y), (x, y-1)]
+    DirDown  -> filter finished [(x, y), (x-1, y)]
   where
     finished (bx, by) =
       bx >= 1 && by >= 1 && bx < size && by < size &&
-      ((bx, by), Right) `elem` edges &&
-      ((bx, by), Down)  `elem` edges &&
-      ((bx+1, by), Down) `elem` edges &&
-      ((bx, by+1), Right) `elem` edges
-
+      ((bx, by), DirRight) `elem` edges &&
+      ((bx, by), DirDown)  `elem` edges &&
+      ((bx+1, by), DirDown) `elem` edges &&
+      ((bx, by+1), DirRight) `elem` edges
 
 makeMove :: Game -> Move -> Maybe Game
 makeMove (edges, turn, boxes, size) move
@@ -93,19 +93,67 @@ makeMove (edges, turn, boxes, size) move
    where
       finished = completedBoxes (edges, turn, boxes, size) move
 
+readGame :: String -> Maybe Game
+readGame s = 
+     case lines s of 
+          (sizeLine : turnLine : edgesLine : boxesLine : _) -> buildGame sizeLine turnLine edgesLine boxesLine
+          (sizeLine : turnLine : edgesLine : _) -> buildGame sizeLine turnLine edgesLine "" 
+          _ -> Nothing
+     where
+          readDir "R" = Just DirRight
+          readDir "D" = Just DirDown
+          readDir _   = Nothing
+          readPlayer "X" = Just X
+          readPlayer "O" = Just O
+          readPlayer _   = Nothing
+          buildGame sizeLine turnLine edgesLine boxesLine = 
+               do size <- readMaybe sizeLine
+                  turn <- case turnLine of
+                             "X" -> Just X
+                             "O" -> Just O
+                             _   -> Nothing
+                  edges <- sequence [ do let [a,b,c] = splitOn "," tok
+                                         x <- readMaybe a
+                                         y <- readMaybe b
+                                         dir <- readDir c
+                                         Just ((x, y), dir)
+                                     | tok <- words edgesLine]
+                  boxes <- sequence [ do let [a,b,c] = splitOn "," tok
+                                         x <- readMaybe a
+                                         y <- readMaybe b
+                                         pl <- readPlayer c
+                                         Just ((x, y), pl)
+                                     | tok <- words boxesLine]         
+                  Just (edges, turn, boxes, size)
+
+showGame :: Game -> String
+showGame (edges, turn, boxes, size) = 
+     let showDir DirRight = "R"
+         showDir DirDown = "D"
+         showEdge ((x, y), d) = show x ++ "," ++ show y ++ "," ++ showDir d
+         showBox ((x, y), p) = show x ++ "," ++ show y ++ "," ++ showPlayer p
+         turnLine = showPlayer turn 
+         edgesLine = unwords (map showEdge edges)
+         boxesLine = unwords (map showBox boxes)
+     in unlines [show size, turnLine, edgesLine, boxesLine]
+
+showPlayer :: Player -> String
+showPlayer X = "X"
+showPlayer O = "O"
+
 whoWillWin :: Game -> Winner
 whoWillWin game@(_, turn, _, _) = case checkChamp game of
   Tie -> Tie
-  Winner p -> Winner p 
+  Won p -> Won p
   Ongoing -> 
     let 
       moves = legalMoves game 
-      games = catMaybe [makeMove game m | m <- moves] 
-      winners = map whoWillWin games --Fairies 
+      games = catMaybes [makeMove game m | m <- moves] 
+      winners = map whoWillWin games
     in
       if Won turn `elem` winners then Won turn 
       else if Tie `elem` winners then Tie 
-      else Won opponent turn
+      else Won (opponent turn)
 
 bestMove :: Game -> Move
 bestMove game@(edges, turn, boxes, size) =
