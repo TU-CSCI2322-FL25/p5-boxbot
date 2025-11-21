@@ -21,7 +21,7 @@ drawGame (edges, _, boxes, size) =
         | ((x, y), DirRight) `elem` edges = "*---"
         | otherwise = "*   "
         
-     drawMiddle y = concat [drawMiddleS x y | x <- [1..size-1]] ++ "|"
+     drawMiddle y = concat [drawMiddleS x y | x <- [1..size-1]] ++ (if ((size, y), DirDown) `elem` edges then "|" else " ")
      drawMiddleS x y = 
         let leftWall = if ((x, y), DirDown) `elem` edges then "|" else " "
             boxChar = case lookup (x, y) boxes of
@@ -127,3 +127,14 @@ readGame s =
      split c str = case break (== c) str of
                          (h, "") -> [h]
                          (h, _:rest) -> h : split c rest
+
+showGame :: Game -> String
+showGame (edges, turn, boxes, size) = 
+     let showDir DirRight = "R"
+         showDir DirDown = "D"
+         showEdge ((x, y), d) = show x ++ "," ++ show y ++ "," ++ showDir d
+         showBox ((x, y), p) = show x ++ "," ++ show y ++ "," ++ (if p == X then "X" else "O")
+         turnLine = if turn == X then "X" else "O"
+         edgesLine = unwords (map showEdge edges)
+         boxesLine = unwords (map showBox boxes)
+     in unlines [ show size, turnLine, edgesLine, boxesLine]
