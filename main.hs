@@ -6,7 +6,7 @@ import Data.List.Split
 
 type Point = (Int, Int)
 data Direction = DirRight | DirDown deriving (Show, Eq)
-data Player = X | O
+data Player = X | O deriving (Show, Eq)
 type Edge = (Point, Direction)
 type Move = Edge
 type Box = (Point, Player)
@@ -38,18 +38,18 @@ gameOver game@(edges,turn,boxes,size) =
     length edges == 2*(size-1)*(size) 
 
 --list comprehension to compare number of boxes between player X or player O. output the winner data type (logic to compare boxes)
-checkChamp :: Game -> Winner
+checkChamp :: Game -> Maybe Winner
 checkChamp game@(edges, turn, boxes, size) = 
     if gameOver game
         then 
             let xCount = length [b | b <- boxes, snd b == X]
                 oCount = length [b | b <- boxes, snd b == O]
             in if xCount > oCount 
-               then Just X
+               then Just $ Won X
                else if oCount > xCount
-                    then Just O
-                    else Tie
-    else Ongoing
+                    then Just $ Won O
+                    else Just Tie
+    else Nothing
 
 legalMoves :: Game -> [Move]
 legalMoves (madeEdges, _, _, size) = allEdges \\ madeEdges
@@ -68,21 +68,21 @@ opponent O = X
 withinBounds :: Move -> Int -> Bool
 withinBounds ((x, y), dir) size =
   case dir of
-    Right -> x < size && y <= size
-    Down  -> y < size && x <= size
+    DirRight -> x < size && y <= size
+    DirDown  -> y < size && x <= size
 
 completedBoxes :: Game -> Move -> [Point]
 completedBoxes (edges, _, _, size) ((x, y), dir) =
   case dir of
-    Right -> filter finished [(x, y), (x, y-1)]
-    Down  -> filter finished [(x, y), (x-1, y)]
+    DirRight -> filter finished [(x, y), (x, y-1)]
+    DirDown  -> filter finished [(x, y), (x-1, y)]
   where
     finished (bx, by) =
       bx >= 1 && by >= 1 && bx < size && by < size &&
-      ((bx, by), Right) `elem` edges &&
-      ((bx, by), Down)  `elem` edges &&
-      ((bx+1, by), Down) `elem` edges &&
-      ((bx, by+1), Right) `elem` edges
+      ((bx, by), DirRight) `elem` edges &&
+      ((bx, by), DirDown)  `elem` edges &&
+      ((bx+1, by), DirDown) `elem` edges &&
+      ((bx, by+1), DirRight) `elem` edges
 
 
 makeMove :: Game -> Move -> Maybe Game
@@ -95,12 +95,12 @@ makeMove (edges, turn, boxes, size) move
    where
       finished = completedBoxes (edges, turn, boxes, size) move
 
-readGame :: String -> Game
+readGame :: String -> Maybe Game
 readGame s = 
      case lines s of 
           (sizeLine : turnLine : edgesLine : boxesLine : _) -> buildGame sizeLine turnLine edgesLine boxesLine
           (sizeLine : turnLine : edgesLine : _) -> buildGame sizeLine turnLine edgesLine "" 
-          _ -> error "No game"
+          _ -> Nothing -- error "No game"
      where
           readDir "R" = Just DirRight
           readDir "D" = Just DirDown
@@ -110,27 +110,23 @@ readGame s =
           readPlayer _   = Nothing
           buildGame sizeLine turnLine edgesLine boxesLine = 
                do size <- readMaybe sizeLine
-               
-                   turn <- case turnLine of
+                  turn <- case turnLine of
                              "X" -> Just X
                              "O" -> Just O
-                             _   -> Nothing -- error "Must have a player"
-                             
-                   edges <- sequence [ do let [a,b,c] = splitOn ',' tok
-                                          x <- readMaybe a
-                                          y <- readMaybe b
-                                          dir <- readDir c
-                                          Just ((x, y), dir)
+                             _   -> Nothing -- error "Must have a player"          
+                  edges <- sequence [ do let [a,b,c] = splitOn "," tok
+                                         x <- readMaybe a
+                                         y <- readMaybe b
+                                         dir <- readDir c
+                                         Just ((x, y), dir)
                                      | tok <- words edgesLine]
-                                      
-                   boxes <- sequence [ do let [a,b,c] = splitOn ',' tok
-                                          x <- readMaybe a
-                                          y <- readMaybe b
-                                          pl <- readPlayer c
-                                          Just ((x, y), pl)
-                                     | tok <- words boxesLine]
-                           
-               Just (edges, turn, boxes, size)
+                  boxes <- sequence [ do let [a,b,c] = splitOn "," tok
+                                         x <- readMaybe a
+                                         y <- readMaybe b
+                                         pl <- readPlayer c
+                                         Just ((x, y), pl)
+                                     | tok <- words boxesLine]         
+                  Just (edges, turn, boxes, size)
                
     
 
