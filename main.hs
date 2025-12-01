@@ -1,15 +1,15 @@
 import Data.List
-
+import Data.Maybe 
 -- Type Classes
 
 type Point = (Int, Int)
 data Direction = DirRight | DirDown deriving (Show, Eq)
-data Player = X | O
+data Player = X | O deriving (Show, Eq)
 type Edge = (Point, Direction)
 type Move = Edge
 type Box = (Point, Player)
-type Turn = Player
-data Winner = Tie | Ongoing | Won Player -- idk
+type Turn = Player deriving (Show, Eq)
+data Winner = Tie | Ongoing | Won Player deriving (Show, Eq) -- idk
 type Game = ([Edge], Turn, [Box], Int) -- int is a variable square size of the board
 
 drawGame :: Game -> String
@@ -43,9 +43,9 @@ checkChamp game@(edges, turn, boxes, size) =
             let xCount = length [b | b <- boxes, snd b == X]
                 oCount = length [b | b <- boxes, snd b == O]
             in if xCount > oCount 
-               then Just X
+               then Won X
                else if oCount > xCount
-                    then Just O
+                    then Won O
                     else Tie
     else Ongoing
 
@@ -94,7 +94,30 @@ makeMove (edges, turn, boxes, size) move
       finished = completedBoxes (edges, turn, boxes, size) move
 
 whoWillWin :: Game -> Winner
-whoWillWin = undefined
+whoWillWin game@(_, turn, _, _) = case checkChamp game of
+  Tie -> Tie
+  Winner p -> Winner p 
+  Ongoing -> 
+    let 
+      moves = legalMoves game 
+      games = catMaybe [makeMove game m | m <- moves] 
+      winners = map whoWillWin games --Fairies 
+    in
+      if Won turn `elem` winners then Won turn 
+      else if Tie `elem` winners then Tie 
+      else Won opponent turn
 
 bestMove :: Game -> Move
-bestMove = undefined      
+bestMove game@(edges, turn, boxes, size) =
+  let
+    moves = legalMoves game
+    moveOutcomes =
+      [(m, whoWillWin g) | m <- moves, Just g <- [makeMove game m]]
+    winningMoves = [m | (m, Won p) <- moveOutcomes, p == turn]
+    tyingMoves   = [m | (m, Tie)   <- moveOutcomes]
+  in
+    case winningMoves of
+      (m:_) -> m
+      []    -> case tyingMoves of
+                (m:_) -> m
+                []    -> fst (head moveOutcomes)
