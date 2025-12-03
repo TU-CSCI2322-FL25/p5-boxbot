@@ -35,3 +35,17 @@ bestMove game@(edges, turn, boxes, size) =
       []    -> case tyingMoves of
                 (m:_) -> m
                 []    -> fst (head moveOutcomes)
+
+rateGame :: Game -> Int
+rateGame game@(_, player, boxes, size) = 
+  let 
+    xCount = length [b | b <- boxes, snd b == X]
+    oCount = length [b | b <- boxes, snd b == O]
+    turnBonus = if player == X then 2 else -2
+  in 
+    case checkChamp game of 
+      Won X   -> (size - 1) * (size - 1)
+      Won O   -> (size - 1) * (size - 1) * (-1)
+      Tie     -> 0
+      Ongoing -> xCount - oCount + turnBonus
+  --If time: check for squares one away for completion, if so add additional turn bonus for each one
