@@ -43,9 +43,10 @@ rateGame game@(_, player, boxes, size) =
     oCount = length [b | b <- boxes, snd b == O]
     turnBonus = if player == X then 2 else -2
   in 
-    case checkChamp game of 
-      Won X   -> (size - 1) * (size - 1)
-      Won O   -> (size - 1) * (size - 1) * (-1)
-      Tie     -> 0
-      Ongoing -> xCount - oCount + turnBonus
+    if gameOver game
+      then  
+          if xCount > oCount then (size - 1) * size
+          else if oCount > xCount then (size - 1) * size * (-1)
+          else 0
+    else xCount - oCount + turnBonus
   --If time: check for squares one away for completion, if so add additional turn bonus for each one
