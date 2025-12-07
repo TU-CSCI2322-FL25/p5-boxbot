@@ -3,10 +3,16 @@ module Main where
 import BoxBot
 import Solver
 
+import System.Environment
+import System.Console.GetOpt
+
 import Data.List
 import Text.Read
 import Data.List.Split
 import Data.Maybe
+
+data Flag = helpFlag | moveFlag String | verboseFlag deriving (Show, Eq)
+
 
 drawGame :: Game -> String
 drawGame (edges, _, boxes, size) = 
@@ -91,9 +97,71 @@ putBestMove game = do
     putStrLn $ "Best move: " ++ show move
     putStrLn $ "Outcome: " ++ show outcome
 
+--main :: IO ()
+--main = do
+    --putStrLn "Enter game file path:"
+    --path <- getLine
+    --game <- loadGame path
+    --putBestMove game
+
+
+
+
+-- anything below this comment line is story 24-26. i tried 21-23 but i cant
+
+options :: [OptDescr Flag]
+options =
+    [ Option ['h'] ["help"]    (NoArg helpFlag)         "Show help"
+    , Option ['m'] ["move"]    (ReqArg moveFlag "<mv>") "Apply a move"
+    , Option ['v'] ["verbose"] (NoArg verboseFlag)      "Verbose output"
+    ]
+
+printHelp :: IO ()
+printHelp = do
+    putStrLn "Usage: program [options] <gamefile>"
+    putStrLn "-h, --help        Show help"
+    putStrLn "-m, --move <mv>   Apply a move"
+    putStrLn "-v, --verbose     Pretty-print board and show outcome"
+
+applyMoveString :: Game -> String -> Game
+applyMoveString g mv =
+    let (a,b) = break (==',') mv
+        x = read a
+        y = read (tail b)
+    in makeMove g (x,y)
+
 main :: IO ()
 main = do
-    putStrLn "Enter game file path:"
-    path <- getLine
-    game <- loadGame path
-    putBestMove game
+    args <- getArgs
+    let (flags, files, _) = getOpt Permute options args
+
+    if helpFlag `elem` flags
+       then printHelp
+       else do
+            if null files
+               then error "No game file provided."
+               else return ()
+
+            game <- loadGame (head files)
+
+            case find isMove flags of
+                Just (moveFlag mv) -> do
+                    let g2 = applyMoveString game mv
+                    if verboseFlag `elem` flags
+                       then do
+                            putStrLn (drawGame g2)
+                            putStrLn "Move applied."
+                       else putStrLn (showGame g2)
+
+                Nothing ->
+                    if verboseFlag `elem` flags
+                       then do
+                            let mv = bestMove game
+                            putStrLn ("Move: " ++ show mv)
+                            putStrLn ("Outcome: " ++ show (whoWillWin game))
+                            putStrLn (drawGame (makeMove game mv))
+                       else print (bestMove game)
+
+isMove :: Flag -> Bool
+isMove (moveFlag _) = True
+isMove _ = False
