@@ -111,9 +111,9 @@ putBestMove game = do
 
 options :: [OptDescr Flag]
 options =
-    [ Option ['h'] ["help"]    (NoArg helpFlag)         "Show help"
-    , Option ['m'] ["move"]    (ReqArg moveFlag "<mv>") "Apply a move"
-    , Option ['v'] ["verbose"] (NoArg verboseFlag)      "Verbose output"
+    [ Option ['h'] ["help"]    (NoArg HelpFlag)         "Show help"
+    , Option ['m'] ["move"]    (ReqArg MoveFlag "<mv>") "Apply a move"
+    , Option ['v'] ["verbose"] (NoArg VerboseFlag)      "Verbose output"
     ]
 
 printHelp :: IO ()
@@ -135,7 +135,7 @@ main = do
     args <- getArgs
     let (flags, files, _) = getOpt Permute options args
 
-    if helpFlag `elem` flags
+    if HelpFlag `elem` flags
        then printHelp
        else do
             if null files
@@ -145,16 +145,16 @@ main = do
             game <- loadGame (head files)
 
             case find isMove flags of
-                Just (moveFlag mv) -> do
+                Just (MoveFlag mv) -> do
                     let g2 = applyMoveString game mv
-                    if verboseFlag `elem` flags
+                    if VerboseFlag `elem` flags
                        then do
                             putStrLn (drawGame g2)
                             putStrLn "Move applied."
                        else putStrLn (showGame g2)
 
                 Nothing ->
-                    if verboseFlag `elem` flags
+                    if VerboseFlag `elem` flags
                        then do
                             let mv = bestMove game
                             putStrLn ("Move: " ++ show mv)
@@ -163,5 +163,5 @@ main = do
                        else print (bestMove game)
 
 isMove :: Flag -> Bool
-isMove (moveFlag _) = True
+isMove (MoveFlag _) = True
 isMove _ = False
