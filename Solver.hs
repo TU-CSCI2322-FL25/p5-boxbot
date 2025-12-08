@@ -52,7 +52,7 @@ rateGame game@(_, player, boxes, size) =
   --If time: check for squares one away for completion, if so add additional turn bonus for each one
 
 whoMightWin :: Game -> Int -> Int
-whoMightWin @game(edges, turn, boxes, size) depth
+whoMightWin game@(edges, turn, boxes, size) depth
     | depth == 0 = rateGame game 
     | gameOver game = rateGame game
     | otherwise = 
