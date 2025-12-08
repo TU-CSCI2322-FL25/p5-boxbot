@@ -23,15 +23,18 @@ whoWillWin game@(_, turn, _, _) = case checkChamp game of
 
 bestMove :: Game -> Move
 bestMove game@(edges, turn, boxes, size) =
-  let
-    moves = legalMoves game
-    moveOutcomes =
-      [(m, whoWillWin g) | m <- moves, Just g <- [makeMove game m]]
-    winningMoves = [m | (m, Won p) <- moveOutcomes, p == turn]
-    tyingMoves   = [m | (m, Tie)   <- moveOutcomes]
-  in
-    case winningMoves of
-      (m:_) -> m
-      []    -> case tyingMoves of
-                (m:_) -> m
-                []    -> fst (head moveOutcomes)
+    search (legalMoves game) Nothing
+  where
+    search :: [Move] -> Maybe Move -> Move
+    search [] (Just tieMove) = tieMove
+    search [] Nothing        = head (legalMoves game)
+    search (m:ms) tieSoFar =
+      case makeMove game m of
+        Nothing -> search ms tieSoFar
+        Just g ->
+          case whoWillWin g of
+            Won p | p == turn -> m
+            Tie               -> search ms (Just m)
+            _                 -> search ms tieSoFar
+
+
