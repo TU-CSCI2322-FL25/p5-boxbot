@@ -64,7 +64,7 @@ whoMightWin game@(edges, turn, boxes, size) depth
             then maximum scores
             else minimum scores
 
-goodMove :: Game Int -> Move
+goodMove :: Game -> Int -> Move
 goodMove game@(edges, turn, boxes, size) depth = 
     let moves = legalMoves game
         moveScores = [(m, scoreMove m) | m <- moves]
