@@ -60,7 +60,7 @@ whoMightWin game@(edges, turn, boxes, size) depth
             games = [makeMove game m | m <- moves]
             validGames = [g | Just g <- games]
             scores = [whoMightWin g (depth - 1) | g <- validGames]
-        in if player == X 
+        in if turn == X 
             then maximum scores
             else minimum scores
 
