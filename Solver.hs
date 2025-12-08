@@ -50,3 +50,30 @@ rateGame game@(_, player, boxes, size) =
           else 0
     else xCount - oCount + turnBonus
   --If time: check for squares one away for completion, if so add additional turn bonus for each one
+
+whoMightWin :: Game -> Int -> Int
+whoMightWin @game(edges, turn, boxes, size) depth
+    | depth == 0 = rateGame game 
+    | gameOver game = rateGame game
+    | otherwise = 
+        let moves = legalMoves game
+            games = [makeMove game m | m <- moves]
+            validGames = [g | Just g <- games]
+            scores = [whoMightWin g (depth - 1) | g <- validGames]
+        in if Player == X 
+            then maximum scores
+            else minimum scores
+
+goodMove :: Game Int -> Move
+goodMove game@(edges, turn, boxes, size) depth = 
+    let moves = legalMoves game
+        moveScores = [(m, scoreMove m) | m <- moves]
+        bestScore = if Player == X
+                   then maximum [s | (_, s) <- moveScores]
+                   else minimum [s | (_, s) <- moveScores]
+        bestMoves = [m | (m, s) <- moveScores, s == bestScore]
+    in head bestMoves
+    where
+        scoreMove m = case makeMove game m of
+            Nothing -> if Player == X then -2 else 2
+            Just g -> whoMightWin g (depth - 1)
