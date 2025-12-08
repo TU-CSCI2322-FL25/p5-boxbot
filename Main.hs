@@ -11,7 +11,7 @@ import Text.Read
 import Data.List.Split
 import Data.Maybe
 
-data Flag = helpFlag | moveFlag String | verboseFlag deriving (Show, Eq)
+data Flag = HelpFlag | MoveFlag String | VerboseFlag deriving (Show, Eq)
 
 
 drawGame :: Game -> String
