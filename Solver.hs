@@ -60,7 +60,7 @@ whoMightWin game@(edges, turn, boxes, size) depth
             games = [makeMove game m | m <- moves]
             validGames = [g | Just g <- games]
             scores = [whoMightWin g (depth - 1) | g <- validGames]
-        in if Player == X 
+        in if player == X 
             then maximum scores
             else minimum scores
 
@@ -68,7 +68,7 @@ goodMove :: Game -> Int -> Move
 goodMove game@(edges, turn, boxes, size) depth = 
     let moves = legalMoves game
         moveScores = [(m, scoreMove m) | m <- moves]
-        bestScore = if Player == X
+        bestScore = if player == X
                    then maximum [s | (_, s) <- moveScores]
                    else minimum [s | (_, s) <- moveScores]
         bestMoves = [m | (m, s) <- moveScores, s == bestScore]
