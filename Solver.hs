@@ -75,5 +75,5 @@ goodMove game@(edges, turn, boxes, size) depth =
     in head bestMoves
     where
         scoreMove m = case makeMove game m of
-            Nothing -> if Player == X then -2 else 2
+            Nothing -> if player == X then -2 else 2
             Just g -> whoMightWin g (depth - 1)
