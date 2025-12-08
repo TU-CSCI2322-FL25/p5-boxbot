@@ -130,7 +130,7 @@ applyMoveString g mv =
         y = read (tail b)
     in makeMove g (x,y)
 
-main :: IO ()
+in :: IO ()
 main = do
     args <- getArgs
     let (flags, files, _) = getOpt Permute options args
