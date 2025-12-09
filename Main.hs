@@ -123,12 +123,19 @@ printHelp = do
     putStrLn "-m, --move <mv>   Apply a move"
     putStrLn "-v, --verbose     Pretty-print board and show outcome"
 
-applyMoveString :: Game -> String -> Game
-applyMoveString g mv =
+applyMoveString :: Game -> String -> Maybe Game
+applyMoveString g mv = 
     let (a,b) = break (==',') mv
         x = read a
         y = read (tail b)
-    in makeMove g (x,y)
+        (edges, turn, boxes, size) = g
+        moveRight = ((x,y), DirRight)
+        moveDown = ((x,y), DirDown)
+    in if moveRight `elem` legalMoves g
+        then makeMove g moveRight
+        else if moveDown `elem` legalMoves g
+            then makeMove g moveDown
+            else Nothing
 
 main :: IO ()
 main = do
@@ -146,22 +153,32 @@ main = do
 
             case find isMove flags of
                 Just (MoveFlag mv) -> do
-                    let g2 = applyMoveString game mv
-                    if VerboseFlag `elem` flags
-                       then do
-                            putStrLn (drawGame g2)
-                            putStrLn "Move applied."
-                       else putStrLn (showGame g2)
+                    case applyMoveString game mv of
+                        Just g2 -> 
+                            if VerboseFlag `elem` flags
+                               then do
+                                    putStrLn (drawGame g2)
+                                    putStrLn "Move applied."
+                               else putStrLn (showGame g2)
+                        Nothing -> error "Invalid move"
 
                 Nothing ->
                     if VerboseFlag `elem` flags
                        then do
                             let mv = bestMove game
-                            putStrLn ("Move: " ++ show mv)
-                            putStrLn ("Outcome: " ++ show (whoWillWin game))
-                            putStrLn (drawGame (makeMove game mv))
+                            case makeMove game mv of
+                                Just g2 -> do
+                                    putStrLn ("Move: " ++ show mv)
+                                    putStrLn ("Outcome: " ++ show (whoWillWin game))
+                                    putStrLn (drawGame g2)
+                                Nothing -> error "Best move invalid"
                        else print (bestMove game)
 
 isMove :: Flag -> Bool
 isMove (MoveFlag _) = True
 isMove _ = False
+
+
+
+
+
