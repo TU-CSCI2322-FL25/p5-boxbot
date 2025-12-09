@@ -5,13 +5,19 @@ import Solver
 
 import System.Environment
 import System.Console.GetOpt
+import System.Exit
 
 import Data.List
 import Text.Read
 import Data.List.Split
 import Data.Maybe
 
-data Flag = HelpFlag | MoveFlag String | VerboseFlag deriving (Show, Eq)
+data Flag = HelpFlag 
+          | MoveFlag String 
+          | VerboseFlag 
+          | WinnerFlag 
+          | DepthFlag String 
+          deriving (Show, Eq)
 
 
 drawGame :: Game -> String
@@ -111,17 +117,21 @@ putBestMove game = do
 
 options :: [OptDescr Flag]
 options =
-    [ Option ['h'] ["help"]    (NoArg HelpFlag)         "Show help"
-    , Option ['m'] ["move"]    (ReqArg MoveFlag "<mv>") "Apply a move"
-    , Option ['v'] ["verbose"] (NoArg VerboseFlag)      "Verbose output"
+    [ Option ['h'] ["help"]    (NoArg HelpFlag)           "Show help"
+    , Option ['m'] ["move"]    (ReqArg MoveFlag "<mv>")   "Apply a move"
+    , Option ['v'] ["verbose"] (NoArg VerboseFlag)        "Verbose output"
+    , Option ['w'] ["winner"]  (NoArg WinnerFlag)         "Use exhaustive search (best move)"
+    , Option ['d'] ["depth"]   (ReqArg DepthFlag "<num>") "Set cutoff depth"
     ]
 
 printHelp :: IO ()
 printHelp = do
     putStrLn "Usage: program [options] <gamefile>"
-    putStrLn "-h, --help        Show help"
-    putStrLn "-m, --move <mv>   Apply a move"
-    putStrLn "-v, --verbose     Pretty-print board and show outcome"
+    putStrLn "-h, --help          Show help"
+    putStrLn "-m, --move <mv>     Apply a move"
+    putStrLn "-v, --verbose       Pretty-print board and show outcome"
+    putStrLn "-w, --winner        Use exhaustive search for best move"
+    putStrLn "-d, --depth <num>   Set cutoff depth"
 
 applyMoveString :: Game -> String -> Maybe Game
 applyMoveString g mv = 
@@ -137,48 +147,101 @@ applyMoveString g mv =
             then makeMove g moveDown
             else Nothing
 
-main :: IO ()
-main = do
-    args <- getArgs
-    let (flags, files, _) = getOpt Permute options args
-
-    if HelpFlag `elem` flags
-       then printHelp
-       else do
-            if null files
-               then error "No game file provided."
-               else return ()
-
-            game <- loadGame (head files)
-
-            case find isMove flags of
-                Just (MoveFlag mv) -> do
-                    case applyMoveString game mv of
-                        Just g2 -> 
-                            if VerboseFlag `elem` flags
-                               then do
-                                    putStrLn (drawGame g2)
-                                    putStrLn "Move applied."
-                               else putStrLn (showGame g2)
-                        Nothing -> error "Invalid move"
-
-                Nothing ->
-                    if VerboseFlag `elem` flags
-                       then do
-                            let mv = bestMove game
-                            case makeMove game mv of
-                                Just g2 -> do
-                                    putStrLn ("Move: " ++ show mv)
-                                    putStrLn ("Outcome: " ++ show (whoWillWin game))
-                                    putStrLn (drawGame g2)
-                                Nothing -> error "Best move invalid"
-                       else print (bestMove game)
-
 isMove :: Flag -> Bool
 isMove (MoveFlag _) = True
 isMove _ = False
 
+isDepth :: Flag -> Bool
+isDepth (DepthFlag _) = True
+isDepth _ = False
+
+getDepth :: [Flag] -> Int
+getDepth flags = 
+    case find isDepth flags of
+        Just (DepthFlag d) -> case readMaybe d of
+            Just n | n > 0 -> n
+            _ -> 3  -- default if parse fails or invalid
+        Nothing -> 3  -- default depth
+
+describeOutcome :: Winner -> String
+describeOutcome (Won X) = "X wins"
+describeOutcome (Won O) = "O wins"
+describeOutcome Tie = "Tie"
+describeOutcome Ongoing = "Game ongoing"
+
+main :: IO ()
+main = do
+    args <- getArgs
+    let (flags, files, errs) = getOpt Permute options args
+
+    -- check for errors
+    if not (null errs)
+       then do
+           mapM_ putStrLn errs
+           exitFailure
+       else return ()
+
+    -- handle help flag
+    if HelpFlag `elem` flags
+       then do
+           printHelp
+           exitSuccess
+       else return ()
+
+    -- check for game file
+    if null files
+       then do
+           putStrLn "Error: No game file provided."
+           putStrLn "Use -h or --help for usage information."
+           exitFailure
+       else return ()
+
+    -- load game
+    game <- loadGame (head files)
+
+    let verbose = VerboseFlag `elem` flags
+        useWinner = WinnerFlag `elem` flags
+        depth = getDepth flags
+
+    -- warn if both -w and -d are used
+    if useWinner && isJust (find isDepth flags)
+       then putStrLn "Warning: -d flag has no effect with -w flag"
+       else return ()
+
+    -- handle move flag
+    case find isMove flags of
+        Just (MoveFlag mv) -> do
+            case applyMoveString game mv of
+                Just newGame -> 
+                    if verbose
+                       then do
+                            -- print with -v
+                            putStrLn (drawGame newGame)
+                       else do
+                            -- print without -v
+                            putStr (showGame newGame)
+                Nothing -> do
+                    putStrLn $ "Error: Invalid move '" ++ mv ++ "'"
+                    exitFailure
 
 
+        Nothing -> do
+            let move = if useWinner
+                      then bestMove game      -- exhaustive search
+                      else goodMove game depth -- depth limited
 
-
+            if verbose
+               then do
+                    -- verbose output with outcome
+                    case makeMove game move of
+                        Just newGame -> do
+                            let outcome = whoWillWin game
+                            putStrLn $ "Move: " ++ show move
+                            putStrLn $ "Outcome: " ++ describeOutcome outcome
+                            putStrLn (drawGame newGame)
+                        Nothing -> do
+                            putStrLn "Error: Computed move is invalid"
+                            exitFailure
+               else do
+                    -- just output the move
+                    print move
